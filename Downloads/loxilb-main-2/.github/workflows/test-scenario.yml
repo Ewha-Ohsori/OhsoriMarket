@@ -1,0 +1,39 @@
+name: Test-Scenario-CI
+
+on:
+ workflow_dispatch:
+    inputs:
+      testName:
+          description: 'Test Scenario Name'     
+          required: true
+          default: 'sconnect'
+      runsOn:
+          description: 'Machine Type'
+          required: true
+          type: choice
+          default: 'ubuntu-20.04'
+          options:
+            - ubuntu-20.04
+            - ubuntu-22.04
+            - ubuntu-24.04
+       
+jobs:
+  build:
+    name: test-scenario
+    runs-on: ${{ github.event.inputs.runsOn }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v2
+      - uses: actions/setup-go@v3
+        with:
+             go-version: '>=1.18.0'
+      - run: sudo apt-get update
+      - run: sudo apt-get -y install lksctp-tools linux-tools-$(uname -r) bridge-utils iperf iproute2 nodejs socat
+      - run: |
+             cd cicd/${{ github.event.inputs.testName }}/
+             ./config.sh
+             ./validation.sh
+             ./rmconfig.sh
+             cd -

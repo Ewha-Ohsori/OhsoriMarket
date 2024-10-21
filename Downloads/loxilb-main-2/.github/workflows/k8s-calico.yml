@@ -1,0 +1,50 @@
+name: K8s-Calico-Cluster-Sanity-CI
+on:
+ schedule:
+ # Runs "At 13:00 UTC every day-of-week"
+ - cron: '0 13 * * *'
+ workflow_dispatch:
+    inputs:
+      testName:
+        description: 'Test Run-Name'     
+        required: true
+        default: 'k8s-calico-cluster'
+jobs:
+  build:
+    name: k8s-calico-cluster-sanity
+    runs-on: [self-hosted, large]
+    if: github.repository == 'loxilb-io/loxilb' 
+          &&  github.event.inputs.tagName == ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Run the test
+        run: |
+         cd cicd/k8s-calico
+         ./config.sh
+         ./validation.sh
+         cd -
+         
+      - name: Clean test-bed
+        if: success() || failure()
+        run: |
+          cd cicd/k8s-calico || true
+          ./rmconfig.sh
+          cd -
+
+      - name: Run the U22 test
+        run: |
+          cd cicd/k8s-calico-ubuntu22
+          ./config.sh
+          ./validation.sh
+          cd -
+         
+      - name: Clean U22 test-bed
+        if: success() || failure()
+        run: |
+          cd cicd/k8s-calico-ubuntu22 || true
+          ./rmconfig.sh
+          cd -

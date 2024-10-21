@@ -1,0 +1,35 @@
+name: K3s-Flannel-Sanity-CI
+on:
+ schedule:
+ # Runs "At 23:00 UTC every day-of-week"
+ - cron: '0 23 * * *'
+ workflow_dispatch:
+    inputs:
+      testName:
+        description: 'Test Run-Name'     
+        required: true
+        default: 'k3s-flannel'
+jobs:
+  build:
+    if: github.repository == 'loxilb-io/loxilb'
+    name: k3s-flannel-sanity
+    runs-on: [self-hosted, large]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Run k3s-flannel CICD
+        run: |
+         echo "KUBECONFIG=--kubeconfig=/etc/rancher/k3s/k3s.yaml" >> $GITHUB_ENV
+         echo "ubuntu=20.04" >> $GITHUB_ENV
+         cd cicd/k3s-flannel/
+         ./config.sh "ubuntu" "20.04"
+         ./validation.sh "${{ env.KUBECONFIG }}"
+         ./rmconfig.sh "${{ env.KUBECONFIG }}"
+         cd -
+      - name: Clean test-bed
+        if: success() || failure()
+        run: |
+          cd cicd/k3s-flannel/ || true
+          ./rmconfig.sh
+          cd -

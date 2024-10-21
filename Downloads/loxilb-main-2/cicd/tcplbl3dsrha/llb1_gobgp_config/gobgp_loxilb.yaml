@@ -1,0 +1,26 @@
+global:
+  config:
+        as: 64512
+        router-id: 11.11.11.1
+  apply-policy:
+    config:
+      export-policy-list:
+        - set-next-hop-self-ext
+neighbors:
+    - config:
+        neighbor-address: 11.11.11.254
+        peer-as: 65001
+defined-sets:
+  neighbor-sets:
+    - neighbor-set-name: ext
+      neighbor-info-list:
+        - 11.11.11.254
+policy-definitions:
+  - name: set-next-hop-self-ext
+    statements:
+      - conditions:
+          match-neighbor-set:
+            neighbor-set: ext
+        actions:
+          bgp-actions:
+            set-next-hop: 11.11.11.1

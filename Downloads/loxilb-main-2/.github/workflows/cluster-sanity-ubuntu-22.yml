@@ -1,0 +1,52 @@
+name: Cluster-Sanity-CI-Ubuntu-22
+
+on:
+  #  schedule:
+  # Runs "At 18:00 UTC every day-of-week"
+  #- cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      userInput:
+        description: 'Enter string to print at end'
+        required: true
+        default: 'Finished'
+      tags:
+        description: 'Cluster Sanity Ubuntu 22'
+  #workflow_run:
+  #  workflows: ["Docker-Multi-Arch"]
+  #  types:
+  #    - completed
+       
+jobs:
+  build:
+    name: cluster-sanity-ubuntu-22
+    runs-on: ubuntu-22.04
+    if: github.repository == 'loxilb-io/loxilb'
+          &&  github.event.inputs.tagName == ''
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v2
+      - uses: actions/setup-go@v3
+        with:
+             go-version: '>=1.18.0'
+      - run: sudo apt-get update
+      - run: sudo apt-get -y install lksctp-tools
+      - run: |
+             cd cicd/cluster1/
+             ./config.sh
+             ./validation.sh
+             ./rmconfig.sh
+             cd -
+             cd cicd/cluster2/
+             ./config.sh
+             ./validation.sh
+             ./rmconfig.sh
+             cd -
+             cd cicd/cluster3/
+             ./config.sh
+             ./validation.sh
+             ./rmconfig.sh
+             cd -
+      - run: echo ${{ github.event.inputs.userInput }}

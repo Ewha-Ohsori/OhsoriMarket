@@ -1,0 +1,42 @@
+name: perf-CI
+on:
+ schedule:
+ # Runs "At 13:00 UTC every day-of-week"
+ - cron: '0 14 * * *'
+ workflow_dispatch:
+    inputs:
+      testName:
+        description: 'Test Run-Name'     
+        required: true
+        default: 'perf-single-node'
+      threads:
+        description: 'No. of threads for iperf & netperf'     
+        required: true
+        default: '50'
+      duration:
+        description: 'Test Run duration'     
+        required: true
+        default: '10'
+jobs:
+  build:
+    name: perf-single-node
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v2
+      - uses: actions/setup-go@v3
+        with:
+             go-version: '>=1.18.0'
+      - run: sudo apt-get update
+      - run: sudo apt-get -y install lksctp-tools linux-tools-$(uname -r) bridge-utils iperf iproute2 nodejs socat iperf3
+      - run: |
+         cd cicd/tcpsctpperf
+         ./config.sh
+         ./validation.sh ${{ github.event.inputs.threads }}  ${{ github.event.inputs.duration }}
+         ./rmconfig.sh
+         cd -

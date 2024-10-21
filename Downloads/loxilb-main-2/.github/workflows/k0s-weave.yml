@@ -1,0 +1,63 @@
+name: K0s-Weave-Sanity-CI
+on:
+ # schedule:
+ # Runs "At 11:00 UTC every day-of-week"
+ #- cron: '0 11 * * *'
+ workflow_dispatch:
+    inputs:
+      testName:
+        description: 'Test Run-Name'     
+        required: true
+        default: 'k0s-weave'
+jobs:
+  test-runner:
+    name: k0s-weave-sanity
+    runs-on: [self-hosted, large]
+    if: github.repository == 'loxilb-io/loxilb' 
+          &&  github.event.inputs.tagName == ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+             go-version: '>=1.18.0'
+      - name: Setup Local Env1
+        run: |
+         echo "KUBECONFIG=/var/lib/k0s/pki/admin.conf" >> $GITHUB_ENV
+      - name: Setup lo
+        run: sudo ip addr add 192.169.20.59/32 dev lo || true
+      - name: Setup Packages
+        run: sudo apt-get -y install lksctp-tools || true
+      - name: Install k0s
+        run: sudo curl -sSLf https://get.k0s.sh | sudo sh
+      - name: Enable k0s worker
+        run: sudo k0s install controller --enable-worker -c cicd/k0s-weave/k0s.yaml
+      - name: Start k0s
+        run: sudo k0s start
+      - name: Setup Weave
+        run: |
+         sleep 120
+         sudo k0s kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+      - name: Print running pods
+        run: |
+         sleep 60
+         sudo k0s kubectl taint nodes --all node-role.kubernetes.io/master:NoSchedule-
+         sleep 60
+         sudo k0s kubectl get nodes
+         sudo k0s kubectl get pods -A
+      - name: Run the test
+        run: |
+         cd cicd/k0s-weave/
+         ./config.sh
+         ./validation.sh
+         cd -
+      - name: Cleanup
+        if: success() || failure()
+        run: |
+          cd cicd/k0s-weave/ || true
+          ./rmconfig.sh
+          cd -
+          sudo ip addr del 192.169.20.59/32 dev lo || true

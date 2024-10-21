@@ -1,0 +1,45 @@
+name: Data-Store-CI
+
+on:
+ workflow_dispatch:
+    inputs:
+      testName:
+          description: 'Test Scenario Name for data store validation'     
+          required: true
+          default: 'sconnect'
+          type: choice
+          options:
+            - sconnect
+            - tcplb
+            - sctplb
+            - cluster1
+            - cluster2
+            - cluster3
+      runsOn:
+          description: 'Machine type'
+          required: true
+          default: 'ubuntu-20.04'
+          type: choice
+          options:
+            - ubuntu-20.04
+            - ubuntu-22.04
+            - ubuntu-24.04
+       
+jobs:
+  build:
+    name: data-store
+    runs-on: ${{ github.event.inputs.runsOn }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v2
+      - uses: actions/setup-go@v3
+        with:
+             go-version: '>=1.18.0'
+      - run: sudo apt-get update
+      - run: sudo apt-get -y install lksctp-tools linux-tools-$(uname -r) bridge-utils iperf iproute2 nodejs socat
+      - run: |
+             cd cicd/data-store/
+             ./test.sh ${{ github.event.inputs.testName }}
+             cd -
