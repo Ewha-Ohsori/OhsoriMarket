@@ -20,9 +20,9 @@ def view_review():
 def reg_item():
     return render_template("register.html")
 
-@application.route("/reg_reviews")
+@application.route("/reg_review")
 def reg_review():
-    return render_template("reg_reviews.html")
+    return render_template("reg_review.html")
 
 @application.route("/submit_product_post", methods=['POST'])
 def reg_item_submit_post():

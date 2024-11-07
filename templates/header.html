@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='review.css') }}">
+    {% block head %}{% endblock head %}
+</head>
+<body>
+    <header id="header">
+        <div class="logo">
+            <a href="/"><img src="{{ url_for('static', filename='image/logo.png') }}" alt="WWE 로고" /></a>
+        </div>
+        <nav class="navbar">
+            <ul class="navbar__menu">
+                <li id="navbar__menu__home">
+                    <a href="/">홈</a>
+                </li>
+                <li id="navbar__menu__reg_items">
+                    <a href="/reg_items">상품 등록</a>
+                </li>
+                <li id="navbar__menu__mypage">
+                    <a href="/mypage">마이페이지</a>
+                </li>
+            </ul>
+        </nav>
+        <div class="user">
+            <span>osori01</span> |
+            <a href="#">로그아웃</a>
+        </div>
+    </header>
+
+    {% block main %}{% endblock main %}
+    <script src="{{ url_for('static', filename='review.js') }}"></script>
+    {% block script %}{% endblock script %}
+</body>
+</html>
