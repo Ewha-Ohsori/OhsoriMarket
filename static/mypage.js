@@ -33,6 +33,13 @@ const mypage = () => {
     });
   });
 
+  // 리뷰 전체 조회 버튼 클릭 이벤트 추가
+  const reviewTab = document.getElementById('review-tab');
+  reviewTab.addEventListener('click', function (event) {
+    event.preventDefault(); // 기본 링크 동작 방지
+    loadAllReviews(); // 리뷰 로드 함수 호출
+  });
+
   // 기본 데이터 로드
   loadTabData("wishlist");
 };
@@ -64,6 +71,45 @@ const loadTabData = (tabId) => {
     error: function(request, status, error) {
       console.error('탭 데이터 로드 실패:', error);
     }
+  });
+};
+
+// 전체 리뷰 로드 함수
+const loadAllReviews = () => {
+  $.ajax({
+    type: 'GET',
+    url: '/api/reviews', // 새로운 API 경로
+    success: function(response) {
+      updateReviewContent(response);
+      document.getElementById('review-overview').style.display = 'block'; // 리뷰 표시
+    },
+    error: function(request, status, error) {
+      console.error('리뷰 로드 실패:', error);
+    }
+  });
+};
+
+// 리뷰 콘텐츠 업데이트 함수
+const updateReviewContent = (data) => {
+  const reviewItemsContainer = document.querySelector('.review-items');
+  reviewItemsContainer.innerHTML = ''; // 기존 리뷰 항목 초기화
+  data.reviews.forEach(review => {
+    const reviewItem = document.createElement('li');
+    reviewItem.classList.add('review-content');
+    reviewItem.innerHTML = `
+      <div class="review-image">
+        <img src="${review.img_path}" alt="${review.product_name}" class="review-thumbnail">
+      </div>
+      <div class="review-details">
+        <p><strong>상품명:</strong> ${review.product_name}</p>
+        <p><strong>제목:</strong> ${review.title}</p>
+        <p><strong>리뷰 내용:</strong> ${review.review}</p>
+        <p><strong>평점:</strong> ${review.rate}</p>
+        <p><strong>작성자:</strong> ${review.buyerId}</p>
+        <p><strong>작성 시간:</strong> ${review.review_time}</p>
+      </div>
+    `;
+    reviewItemsContainer.appendChild(reviewItem);
   });
 };
 
