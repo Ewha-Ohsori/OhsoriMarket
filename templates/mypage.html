@@ -30,7 +30,11 @@
         <button class="tab active" onclick="showTab('wishlist')">찜한 상품</button>
         <button class="tab" onclick="showTab('purchase-history')">구매 내역</button>
         <button class="tab" onclick="showTab('sales-history')">판매 내역</button>
+<<<<<<< Updated upstream
         <button class="tab" onclick="showTab('review-overview')">리뷰 전체 조회</button>
+=======
+        <button class="tab" id="review-tab">리뷰 전체 조회</button>
+>>>>>>> Stashed changes
     </div>
 
     <!-- 찜한 상품 콘텐츠 -->
@@ -95,19 +99,52 @@
 </div>
 
     <!-- 리뷰 전체 조회 콘텐츠 -->
-    <div class="tab-content" id="review-overview">
+    <div class="tab-content" id="review-overview" style="display: none;">
+        <h2>리뷰 전체 조회</h2>
         <ul class="review-items">
-            <!-- TODO: 전체 조회 연결 후에 경로 name 수정 필요 -->
-            <a href="{{ url_for('view_review', name='드롱기 토스터기') }}" class="review-item">
-                <img src="{{ url_for('static', filename='images/clothes.png') }}" alt="clothes.png" />
-                <div class="review-info">
-                    <p class="review-username">osori022</p>
-                    <p class="product-name">비비안웨스트우드 아이보리 가디건</p>
-                    <p class="review-text">잘받았습니다~</p>
-                    <div class="star-rating">★★★★★</div>
-                </div>
-            </a>
+            {% for key, review in reviews %}
+            <li class="review-item">
+                <a href="{{ url_for('view_review', name=key) }}">
+                    <div class="review-content">
+                        <div class="review-image">
+                            <img src="{{ url_for('static', filename='images/' + review.img_path) }}" alt="{{ key }}" class="review-thumbnail">
+                        </div>
+                        <div class="review-details">
+                            <p><strong>상품명:</strong> {{ key }}</p>
+                            <p><strong>제목:</strong> {{ review.title }}</p>
+                            <p><strong>리뷰 내용:</strong> {{ review.review }}</p>
+                            <p><strong>평점:</strong> {{ review.rate }}</p>
+                            <p><strong>작성자:</strong> {{ review.buyerId }}</p>
+                            <p><strong>작성 시간:</strong> {{ review.review_time }}</p>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% else %}
+            <li>리뷰가 없습니다.</li>
+            {% endfor %}
         </ul>
+        
+        <!-- Pagination -->
+        <div class="pagination">
+            <div class="arrow-group-left">
+                {% if page > 0 %}
+                <a href="{{ url_for('all_reviews', page=page-1) }}" class="prev-page">이전</a>
+                {% endif %}
+            </div>
+            
+            {% for i in range(page_count) %}
+            <a href="{{ url_for('all_reviews', page=i) }}" class="page-number {% if i == page %}active{% endif %}">
+                {{ i + 1 }}
+            </a>
+            {% endfor %}
+            
+            <div class="arrow-group-right">
+                {% if page < page_count - 1 %}
+                <a href="{{ url_for('all_reviews', page=page+1) }}" class="next-page">다음</a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <div class="pagination">
